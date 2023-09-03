@@ -1,4 +1,4 @@
-module github.com/bendoerr/terraform-aws-tfstate/test
+module github.com/bendoerr-terraform-modules/terraform-aws-tfstate/test
 
 go 1.20
 
