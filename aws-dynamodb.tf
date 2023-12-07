@@ -10,12 +10,15 @@ resource "aws_dynamodb_table" "locks" {
 
   hash_key = "LockID"
 
-  read_capacity  = 1
-  write_capacity = 1
+  billing_mode = "PAY_PER_REQUEST"
 
   attribute {
     name = "LockID"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = false
   }
 
   server_side_encryption {
