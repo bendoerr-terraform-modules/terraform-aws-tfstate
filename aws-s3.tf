@@ -1,5 +1,6 @@
 module "label_store" {
-  source  = "git@github.com:bendoerr-terraform-modules/terraform-null-label?ref=v0.4.0"
+  source  = "bendoerr-terraform-modules/label/null"
+  version = "0.4.1"
   context = var.context
   name    = "store"
 }

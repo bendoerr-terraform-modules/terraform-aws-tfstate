@@ -1,5 +1,6 @@
 module "label_dynamodb_rw" {
-  source  = "git@github.com:bendoerr-terraform-modules/terraform-null-label?ref=v0.4.0"
+  source  = "bendoerr-terraform-modules/label/null"
+  version = "0.4.1"
   context = var.context
   name    = "dynamodb-rw"
 }
@@ -23,7 +24,8 @@ resource "aws_iam_policy" "state_dynamodb_rw" {
 }
 
 module "label_s3_rw" {
-  source  = "git@github.com:bendoerr-terraform-modules/terraform-null-label?ref=v0.4.0"
+  source  = "bendoerr-terraform-modules/label/null"
+  version = "0.4.1"
   context = var.context
   name    = "s3-rw"
 }

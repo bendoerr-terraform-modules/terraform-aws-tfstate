@@ -2,8 +2,8 @@
 <p align="center">
   <a href="https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/logo-dark.png">
-      <img src="docs/logo-light.png" alt="Logo">
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/raw/main/docs/logo-dark.png">
+      <img src="https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/raw/main/docs/logo-light.png" alt="Logo">
     </picture>
   </a>
 
@@ -22,96 +22,179 @@
   </p>
 </p>
 
-![Contributors](https://img.shields.io/github/contributors/bendoerr-terraform-modules/terraform-aws-tfstate?color=dark-green) ![Issues](https://img.shields.io/github/issues/bendoerr-terraform-modules/terraform-aws-tfstate) ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/bendoerr-terraform-modules/terraform-aws-tfstate/test.yml)
-![GitHub tag (with filter)](https://img.shields.io/github/v/tag/bendoerr-terraform-modules/terraform-aws-tfstate?filter=v*)
-![License](https://img.shields.io/github/license/bendoerr-terraform-modules/terraform-aws-tfstate)
+[<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/bendoerr-terraform-modules/terraform-aws-tfstate?logo=github">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/graphs/contributors)
+[<img alt="GitHub issues" src="https://img.shields.io/github/issues/bendoerr-terraform-modules/terraform-aws-tfstate?logo=github">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/issues)
+[<img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/bendoerr-terraform-modules/terraform-aws-tfstate?logo=github">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/pulls)
+[<img alt="GitHub workflow: Terratest" src="https://img.shields.io/github/actions/workflow/status/bendoerr-terraform-modules/terraform-aws-tfstate/test.yml?logo=githubactions&label=terratest">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/actions/workflows/test.yml)
+[<img alt="GitHub workflow: Linting" src="https://img.shields.io/github/actions/workflow/status/bendoerr-terraform-modules/terraform-aws-tfstate/lint.yml?logo=githubactions&label=linting">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/actions/workflows/lint.yml)
+[<img alt="GitHub tag (with filter)" src="https://img.shields.io/github/v/tag/bendoerr-terraform-modules/terraform-aws-tfstate?filter=v*&label=latest%20tag&logo=terraform">](https://registry.terraform.io/modules/bendoerr-terraform-modules/label/null/latest)
+[<img alt="OSSF-Scorecard Score" src="https://img.shields.io/ossf-scorecard/github.com/bendoerr-terraform-modules/terraform-aws-tfstate?logo=securityscorecard&label=ossf%20scorecard&link=https%3A%2F%2Fsecurityscorecards.dev%2Fviewer%2F%3Furi%3Dgithub.com%2Fbendoerr-terraform-modules%2Fterraform-aws-tfstate">](https://securityscorecards.dev/viewer/?uri=github.com/bendoerr-terraform-modules/terraform-aws-tfstate)
+[<img alt="GitHub License" src="https://img.shields.io/github/license/bendoerr-terraform-modules/terraform-aws-tfstate?logo=opensourceinitiative">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/blob/main/LICENSE.txt)
 
 ## About The Project
 
-My opinionated AWS Defaults module.
+Ben's Terraform AWS TFState Remote Backend Module
 
 ## Usage
 
-```
+Start with a simple Terraform project looking something similar to the
+following. This module will create the S3 bucket and DynamoDB table you need. A
+good practice is to keep this Terraform project simple and check the state data
+into your source control.
+
+```terraform
 module "context" {
-  source    = "git@github.com:bendoerr-terraform-modules/terraform-null-context?ref=v0.4.0"
-  namespace = "brd"
-  role      = "production'
+  source    = "bendoerr-terraform-modules/context/null"
+  version   = "xxx"
+  namespace = "bd"
+  role      = "production"
   region    = "us-east-1"
-  project   = "example'
+  project   = "tfstate"
 }
 
 module "tfstate" {
-  source               = "git@github.com:bendoerr-terraform-modules/terraform-aws-tfstate?ref=v0.2.0"
-  context              = module.context.shared
+  source  = "bendoerr-terraform-modules/tfstate/aws"
+  version = "xxx"
+  context = module.context.shared
+}
+
+output "store" {
+  value = module.tfstate.tfstate_id # -> bd-prod-ue1-tfstate-store
+}
+
+output "lock_table" {
+  value = module.tfstate.lock_table_name # -> bd-prod-ue1-tfstate-locks
 }
 ```
 
-## Requirements
+In future projects your TF state can be centrally maintained.
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+```terraform
+terraform {
+  backend "s3" {
+    bucket               = "brd-prod-ue1-tfstate-store"
+    dynamodb_table       = "brd-prod-ue1-tfstate-locks"
+    key                  = "terraform.tfstate"
+    kms_key_id           = "alias/aws/s3"
+    region               = "us-east-1"
+    workspace_key_prefix = "foundryvtt-on-demand"
+  }
+}
+```
 
-## Providers
+### Cost
 
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.0 |
+<a href="https://dashboard.infracost.io/org/bendoerr/repos/8e371a47-5161-427f-a0b9-e8fb9d7bf2a5?tab=settings"><img src="https://img.shields.io/endpoint?url=https://dashboard.api.infracost.io/shields/json/6e706676-64ba-43db-97b9-bd92f9272474/repos/8e371a47-5161-427f-a0b9-e8fb9d7bf2a5/branch/feee4136-0bbb-4a2e-9874-21543ff6b443" alt="infracost"/></a>
 
-## Modules
+```text
+Project: 10 Workspaces & 5 Applies Each Per Day
+Module path: examples/complete
 
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_label_dynamodb_rw"></a> [label\_dynamodb\_rw](#module\_label\_dynamodb\_rw) | git@github.com:bendoerr-terraform-modules/terraform-null-label | v0.4.0 |
-| <a name="module_label_locks"></a> [label\_locks](#module\_label\_locks) | git@github.com:bendoerr-terraform-modules/terraform-null-label | v0.4.0 |
-| <a name="module_label_s3_rw"></a> [label\_s3\_rw](#module\_label\_s3\_rw) | git@github.com:bendoerr-terraform-modules/terraform-null-label | v0.4.0 |
-| <a name="module_label_store"></a> [label\_store](#module\_label\_store) | git@github.com:bendoerr-terraform-modules/terraform-null-label | v0.4.0 |
-| <a name="module_store"></a> [store](#module\_store) | terraform-aws-modules/s3-bucket/aws | 3.15.1 |
+ Name                                               Monthly Qty  Unit         Monthly Cost
 
-## Resources
+ module.tfstate.aws_dynamodb_table.locks
+ ├─ Write request unit (WRU)                              1,500  WRUs                $0.00
+ └─ Read request unit (RRU)                               1,500  RRUs                $0.00
 
-| Name | Type |
-|------|------|
-| [aws_dynamodb_table.locks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
-| [aws_iam_policy.s3_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
-| [aws_iam_policy.state_dynamodb_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+ module.tfstate.module.store.aws_s3_bucket.this[0]
+ └─ Standard
+    ├─ Storage                                             0.02  GB                  $0.00
+    ├─ PUT, COPY, POST, LIST requests                       4.5  1k requests         $0.02
+    └─ GET, SELECT, and all other requests                    3  1k requests         $0.00
+
+ OVERALL TOTAL                                                                       $0.03
+──────────────────────────────────
+9 cloud resources were detected:
+∙ 2 were estimated, all of which include usage-based costs, see https://infracost.io/usage-file
+∙ 7 were free, rerun with --show-skipped to see details
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Project                                            ┃ Monthly cost ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━┫
+┃ 10 Workspaces & 5 Applies Each Per Day             ┃ $0.03        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━┛
+```
+
+<!-- BEGIN_TF_DOCS -->
+
+### Requirements
+
+| Name                                                                     | Version |
+| ------------------------------------------------------------------------ | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 0.13 |
+| <a name="requirement_aws"></a> [aws](#requirement_aws)                   | ~> 5.0  |
+
+### Providers
+
+| Name                                             | Version |
+| ------------------------------------------------ | ------- |
+| <a name="provider_aws"></a> [aws](#provider_aws) | ~> 5.0  |
+
+### Modules
+
+| Name                                                                                   | Source                                | Version |
+| -------------------------------------------------------------------------------------- | ------------------------------------- | ------- |
+| <a name="module_label_dynamodb_rw"></a> [label_dynamodb_rw](#module_label_dynamodb_rw) | bendoerr-terraform-modules/label/null | 0.4.1   |
+| <a name="module_label_locks"></a> [label_locks](#module_label_locks)                   | bendoerr-terraform-modules/label/null | 0.4.1   |
+| <a name="module_label_s3_rw"></a> [label_s3_rw](#module_label_s3_rw)                   | bendoerr-terraform-modules/label/null | 0.4.1   |
+| <a name="module_label_store"></a> [label_store](#module_label_store)                   | bendoerr-terraform-modules/label/null | 0.4.1   |
+| <a name="module_store"></a> [store](#module_store)                                     | terraform-aws-modules/s3-bucket/aws   | 3.15.1  |
+
+### Resources
+
+| Name                                                                                                                                      | Type        |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| [aws_dynamodb_table.locks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table)                    | resource    |
+| [aws_iam_policy.s3_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy)                            | resource    |
+| [aws_iam_policy.state_dynamodb_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy)                | resource    |
 | [aws_iam_policy_document.dynamodb_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
-| [aws_iam_policy_document.s3_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
-| [aws_kms_alias.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/kms_alias) | data source |
+| [aws_iam_policy_document.s3_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document)       | data source |
+| [aws_kms_alias.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/kms_alias)                              | data source |
 
-## Inputs
+### Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_context"></a> [context](#input\_context) | Shared Context from Ben's terraform-null-context | <pre>object({<br>    attributes     = list(string)<br>    dns_namespace  = string<br>    environment    = string<br>    instance       = string<br>    instance_short = string<br>    namespace      = string<br>    region         = string<br>    region_short   = string<br>    role           = string<br>    role_short     = string<br>    project        = string<br>    tags           = map(string)<br>  })</pre> | n/a | yes |
+| Name                                                   | Description                                      | Type                                                                                                                                                                                                                                                                                                                      | Default | Required |
+| ------------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | :------: |
+| <a name="input_context"></a> [context](#input_context) | Shared Context from Ben's terraform-null-context | <pre>object({<br> attributes = list(string)<br> dns_namespace = string<br> environment = string<br> instance = string<br> instance_short = string<br> namespace = string<br> region = string<br> region_short = string<br> role = string<br> role_short = string<br> project = string<br> tags = map(string)<br> })</pre> | n/a     |   yes    |
 
-## Outputs
+### Outputs
 
-| Name | Description |
-|------|-------------|
-| <a name="output_iam_locks_rw_arn"></a> [iam\_locks\_rw\_arn](#output\_iam\_locks\_rw\_arn) | n/a |
-| <a name="output_iam_locks_rw_id"></a> [iam\_locks\_rw\_id](#output\_iam\_locks\_rw\_id) | n/a |
-| <a name="output_iam_tfstate_rw_arn"></a> [iam\_tfstate\_rw\_arn](#output\_iam\_tfstate\_rw\_arn) | n/a |
-| <a name="output_iam_tfstate_rw_id"></a> [iam\_tfstate\_rw\_id](#output\_iam\_tfstate\_rw\_id) | n/a |
-| <a name="output_lock_table_arn"></a> [lock\_table\_arn](#output\_lock\_table\_arn) | n/a |
-| <a name="output_lock_table_id"></a> [lock\_table\_id](#output\_lock\_table\_id) | n/a |
-| <a name="output_lock_table_name"></a> [lock\_table\_name](#output\_lock\_table\_name) | n/a |
-| <a name="output_tfstate_arn"></a> [tfstate\_arn](#output\_tfstate\_arn) | n/a |
-| <a name="output_tfstate_id"></a> [tfstate\_id](#output\_tfstate\_id) | n/a |
+| Name                                                                                      | Description |
+| ----------------------------------------------------------------------------------------- | ----------- |
+| <a name="output_iam_locks_rw_arn"></a> [iam_locks_rw_arn](#output_iam_locks_rw_arn)       | n/a         |
+| <a name="output_iam_locks_rw_id"></a> [iam_locks_rw_id](#output_iam_locks_rw_id)          | n/a         |
+| <a name="output_iam_tfstate_rw_arn"></a> [iam_tfstate_rw_arn](#output_iam_tfstate_rw_arn) | n/a         |
+| <a name="output_iam_tfstate_rw_id"></a> [iam_tfstate_rw_id](#output_iam_tfstate_rw_id)    | n/a         |
+| <a name="output_lock_table_arn"></a> [lock_table_arn](#output_lock_table_arn)             | n/a         |
+| <a name="output_lock_table_id"></a> [lock_table_id](#output_lock_table_id)                | n/a         |
+| <a name="output_lock_table_name"></a> [lock_table_name](#output_lock_table_name)          | n/a         |
+| <a name="output_tfstate_arn"></a> [tfstate_arn](#output_tfstate_arn)                      | n/a         |
+| <a name="output_tfstate_id"></a> [tfstate_id](#output_tfstate_id)                         | n/a         |
 
+<!-- END_TF_DOCS -->
 
 ## Roadmap
 
-See the [open issues](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/issues) for a list of proposed features (and known issues).
+[<img alt="GitHub issues" src="https://img.shields.io/github/issues/bendoerr-terraform-modules/terraform-aws-tfstate?logo=github">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/issues)
+
+See the
+[open issues](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/issues)
+for a list of proposed features (and known issues).
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-* If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/issues/new) to discuss it, or directly create a pull request after you edit the *README.md* file with necessary changes.
-* Please make sure you check your spelling and grammar.
-* Create individual PR for each suggestion.
+[<img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/bendoerr-terraform-modules/terraform-aws-tfstate?logo=github">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/pulls)
+
+Contributions are what make the open source community such an amazing place to
+be learn, inspire, and create. Any contributions you make are **greatly
+appreciated**.
+
+- If you have suggestions for adding or removing projects, feel free to
+  [open an issue](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/issues/new)
+  to discuss it, or directly create a pull request after you edit the
+  _README.md_ file with necessary changes.
+- Please make sure you check your spelling and grammar.
+- Create individual PR for each suggestion.
 
 ### Creating A Pull Request
 
@@ -123,12 +206,31 @@ Contributions are what make the open source community such an amazing place to b
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/blob/main/LICENSE.txt) for more information.
+[<img alt="GitHub License" src="https://img.shields.io/github/license/bendoerr-terraform-modules/terraform-aws-tfstate?logo=opensourceinitiative">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/blob/main/LICENSE.txt)
+
+Distributed under the MIT License. See
+[LICENSE](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/blob/main/LICENSE.txt)
+for more information.
 
 ## Authors
 
-* **Benjamin R. Doerr** - *Terraformer* - [Benjamin R. Doerr](https://github.com/bendoerr/) - *Built Ben's Terraform Modules*
+[<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/bendoerr-terraform-modules/terraform-aws-tfstate?logo=github">](https://github.com/bendoerr-terraform-modules/terraform-aws-tfstate/graphs/contributors)
+
+- **Benjamin R. Doerr** - _Terraformer_ -
+  [Benjamin R. Doerr](https://github.com/bendoerr/) - _Built Ben's Terraform
+  Modules_
+
+## Supported Versions
+
+Only the latest tagged version is supported.
+
+## Reporting a Vulnerability
+
+See [SECURITY.md](SECURITY.md).
 
 ## Acknowledgements
 
-* [ShaanCoding (ReadME Generator)](https://github.com/ShaanCoding/ReadME-Generator)
+- [ShaanCoding (ReadME Generator)](https://github.com/ShaanCoding/ReadME-Generator)
+- [OpenSSF - Helping me follow best practices](https://openssf.org/)
+- [StepSecurity - Helping me follow best practices](https://app.stepsecurity.io/)
+- [Infracost - Better than AWS Calculator](https://www.infracost.io/)
