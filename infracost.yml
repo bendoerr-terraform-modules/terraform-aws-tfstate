@@ -1,0 +1,7 @@
+version: 0.1
+projects:
+  - path: examples/complete
+    name: 10 Workspaces & 5 Applies Each Per Day
+    usage_file: examples/complete/infracost-usage.yml
+    terraform_var_files:
+      - complete.tfvars
