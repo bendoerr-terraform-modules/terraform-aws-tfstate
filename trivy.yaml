@@ -2,5 +2,7 @@ scan:
   skip-dirs:
     - ./.terraform
     - ./.infracost
-    - ./examples/complete/.terraform
-    - ./examples/complete/.infracost
+    - ./examples/simple/.terraform
+    - ./examples/simple/.infracost
+    - ./examples/with-backend-role/.terraform
+    - ./examples/with-backend-role/.infracost
