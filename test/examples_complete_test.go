@@ -1,11 +1,12 @@
-package test
+package test_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"testing"
 )
 
 func TestDefaults(t *testing.T) {
