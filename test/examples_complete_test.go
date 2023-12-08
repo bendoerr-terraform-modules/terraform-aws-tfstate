@@ -2,11 +2,9 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"github.com/kr/pretty"
 	"testing"
 )
 
@@ -40,15 +38,4 @@ func TestDefaults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-}
-
-func makediff(want interface{}, got interface{}) string {
-	s := fmt.Sprintf("\nwant: %# v", pretty.Formatter(want))
-	s = fmt.Sprintf("%s\ngot: %# v", s, pretty.Formatter(got))
-	diffs := pretty.Diff(want, got)
-	s = fmt.Sprintf("%s\ndifferences: ", s)
-	for _, d := range diffs {
-		s = fmt.Sprintf("%s\n  - %s", s, d)
-	}
-	return s
 }
