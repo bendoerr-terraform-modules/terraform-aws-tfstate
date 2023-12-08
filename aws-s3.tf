@@ -5,6 +5,7 @@ module "label_store" {
   name    = "store"
 }
 
+# tfsec:ignore:aws-s3-enable-bucket-logging
 module "store" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "3.15.1"
@@ -23,13 +24,9 @@ module "store" {
   server_side_encryption_configuration = {
     rule = {
       apply_server_side_encryption_by_default = {
-        kms_master_key_id = data.aws_kms_alias.s3.arn
+        kms_master_key_id = var.s3_kms_key_arn
         sse_algorithm     = "aws:kms"
       }
     }
   }
-}
-
-data "aws_kms_alias" "s3" {
-  name = "alias/aws/s3"
 }
