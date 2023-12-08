@@ -90,5 +90,5 @@ data "aws_iam_policy_document" "s3_rw_combined" {
 resource "aws_iam_policy" "s3_rw" {
   name   = module.label_s3_rw.id
   tags   = module.label_s3_rw.tags
-  policy = data.aws_iam_policy_document.s3_rw.json
+  policy = data.aws_iam_policy_document.s3_rw_combined.json
 }
