@@ -29,27 +29,3 @@ variable "s3_kms_key_arn" {
   description = "TODO"
   nullable    = true
 }
-
-variable "create_backend_role" {
-  type        = bool
-  default     = false
-  description = "TODO"
-  nullable    = false
-}
-
-variable "backend_assume_default" {
-  type        = bool
-  default     = false
-  description = "TODO"
-  nullable    = false
-}
-
-variable "backend_assume_principals" {
-  type = list(object({
-    type        = string
-    identifiers = list(string)
-  }))
-  default     = null
-  description = "TODO"
-  nullable    = true
-}
