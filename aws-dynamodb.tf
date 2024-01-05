@@ -1,10 +1,3 @@
-module "label_locks" {
-  source  = "bendoerr-terraform-modules/label/null"
-  version = "0.4.1"
-  context = var.context
-  name    = "locks"
-}
-
 # Point in time recovery is not needed.
 #tfsec:ignore:aws-dynamodb-enable-recovery
 resource "aws_dynamodb_table" "locks" {

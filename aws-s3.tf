@@ -1,10 +1,3 @@
-module "label_store" {
-  source  = "bendoerr-terraform-modules/label/null"
-  version = "0.4.1"
-  context = var.context
-  name    = "store"
-}
-
 # tfsec:ignore:aws-s3-enable-bucket-logging
 module "store" {
   source  = "terraform-aws-modules/s3-bucket/aws"
