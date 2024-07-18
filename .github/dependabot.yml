@@ -38,4 +38,4 @@ updates:
           - "minor"
           - "patch"
     commit-message:
-      prefix: "⬆️ ghaction:"
+      prefix: "⬆️ gha:"
