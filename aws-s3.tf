@@ -1,3 +1,40 @@
+data "aws_iam_policy_document" "s3_rw" {
+  statement {
+    sid    = "AllowListBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      module.store.s3_bucket_arn,
+    ]
+  }
+
+  statement {
+    sid    = "AllowReadWrite"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = [
+      "${module.store.s3_bucket_arn}/*",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "s3_rw" {
+  name        = module.label_s3_rw.id
+  tags        = module.label_s3_rw.tags
+  description = "Read/write access to the Terraform state S3 bucket."
+  policy      = data.aws_iam_policy_document.s3_rw.json
+}
+
 # tfsec:ignore:aws-s3-enable-bucket-logging
 module "store" {
   source  = "terraform-aws-modules/s3-bucket/aws"

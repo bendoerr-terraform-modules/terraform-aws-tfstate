@@ -59,7 +59,7 @@ module "tfstate" {
 }
 
 output "store" {
-  value = module.tfstate.tfstate_id # -> bd-prod-ue1-tfstate-store
+  value = module.tfstate.bucket_id # -> bd-prod-ue1-tfstate-store
 }
 
 output "lock_table" {
@@ -134,11 +134,11 @@ Module path: examples/complete
 
 | Name                                                                                   | Source                                | Version |
 | -------------------------------------------------------------------------------------- | ------------------------------------- | ------- |
-| <a name="module_label_dynamodb_rw"></a> [label_dynamodb_rw](#module_label_dynamodb_rw) | bendoerr-terraform-modules/label/null | 0.4.1   |
-| <a name="module_label_locks"></a> [label_locks](#module_label_locks)                   | bendoerr-terraform-modules/label/null | 0.4.1   |
-| <a name="module_label_s3_rw"></a> [label_s3_rw](#module_label_s3_rw)                   | bendoerr-terraform-modules/label/null | 0.4.1   |
-| <a name="module_label_store"></a> [label_store](#module_label_store)                   | bendoerr-terraform-modules/label/null | 0.4.1   |
-| <a name="module_store"></a> [store](#module_store)                                     | terraform-aws-modules/s3-bucket/aws   | 3.15.1  |
+| <a name="module_label_dynamodb_rw"></a> [label_dynamodb_rw](#module_label_dynamodb_rw) | bendoerr-terraform-modules/label/null | 0.5.0   |
+| <a name="module_label_locks"></a> [label_locks](#module_label_locks)                   | bendoerr-terraform-modules/label/null | 0.5.0   |
+| <a name="module_label_s3_rw"></a> [label_s3_rw](#module_label_s3_rw)                   | bendoerr-terraform-modules/label/null | 0.5.0   |
+| <a name="module_label_store"></a> [label_store](#module_label_store)                   | bendoerr-terraform-modules/label/null | 0.5.0   |
+| <a name="module_store"></a> [store](#module_store)                                     | terraform-aws-modules/s3-bucket/aws   | 5.10.0  |
 
 ### Resources
 
@@ -153,23 +153,25 @@ Module path: examples/complete
 
 ### Inputs
 
-| Name                                                   | Description                                      | Type                                                                                                                                                                                                                                                                                                                      | Default | Required |
-| ------------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | :------: |
-| <a name="input_context"></a> [context](#input_context) | Shared Context from Ben's terraform-null-context | <pre>object({<br> attributes = list(string)<br> dns_namespace = string<br> environment = string<br> instance = string<br> instance_short = string<br> namespace = string<br> region = string<br> region_short = string<br> role = string<br> role_short = string<br> project = string<br> tags = map(string)<br> })</pre> | n/a     |   yes    |
+| Name                                                                                               | Description                                                                                                                                                                                    | Type                                                                                                                                                                                                                                                                                                                      | Default | Required |
+| -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | :------: |
+| <a name="input_context"></a> [context](#input_context)                                             | Shared Context from Ben's terraform-null-context                                                                                                                                               | <pre>object({<br> attributes = list(string)<br> dns_namespace = string<br> environment = string<br> instance = string<br> instance_short = string<br> namespace = string<br> region = string<br> region_short = string<br> role = string<br> role_short = string<br> project = string<br> tags = map(string)<br> })</pre> | n/a     |   yes    |
+| <a name="input_dynamodb_kms_key_arn"></a> [dynamodb\_kms\_key\_arn](#input_dynamodb_kms_key_arn)   | The ARN of a customer-managed AWS KMS key to use for server-side encryption of the DynamoDB state-lock table. When null, the AWS-managed DynamoDB default key is used.                         | `string`                                                                                                                                                                                                                                                                                                                  | `null`  |    no    |
+| <a name="input_s3_kms_key_arn"></a> [s3\_kms\_key\_arn](#input_s3_kms_key_arn)                    | The ARN of a customer-managed AWS KMS key to use for server-side encryption of the S3 Terraform state bucket. When null, the AWS-managed S3 default key (aws/s3) is used.                     | `string`                                                                                                                                                                                                                                                                                                                  | `null`  |    no    |
 
 ### Outputs
 
-| Name                                                                                      | Description |
-| ----------------------------------------------------------------------------------------- | ----------- |
-| <a name="output_iam_locks_rw_arn"></a> [iam_locks_rw_arn](#output_iam_locks_rw_arn)       | n/a         |
-| <a name="output_iam_locks_rw_id"></a> [iam_locks_rw_id](#output_iam_locks_rw_id)          | n/a         |
-| <a name="output_iam_tfstate_rw_arn"></a> [iam_tfstate_rw_arn](#output_iam_tfstate_rw_arn) | n/a         |
-| <a name="output_iam_tfstate_rw_id"></a> [iam_tfstate_rw_id](#output_iam_tfstate_rw_id)    | n/a         |
-| <a name="output_lock_table_arn"></a> [lock_table_arn](#output_lock_table_arn)             | n/a         |
-| <a name="output_lock_table_id"></a> [lock_table_id](#output_lock_table_id)                | n/a         |
-| <a name="output_lock_table_name"></a> [lock_table_name](#output_lock_table_name)          | n/a         |
-| <a name="output_tfstate_arn"></a> [tfstate_arn](#output_tfstate_arn)                      | n/a         |
-| <a name="output_tfstate_id"></a> [tfstate_id](#output_tfstate_id)                         | n/a         |
+| Name                                                                                      | Description                                                                              |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| <a name="output_bucket_arn"></a> [bucket_arn](#output_bucket_arn)                         | The S3 bucket ARN where the state will be stored.                                        |
+| <a name="output_bucket_id"></a> [bucket_id](#output_bucket_id)                            | The S3 bucket ID where the state will be stored.                                         |
+| <a name="output_iam_locks_rw_arn"></a> [iam_locks_rw_arn](#output_iam_locks_rw_arn)       | The ARN of the IAM policy granting read/write access to the Terraform state DynamoDB lock table. |
+| <a name="output_iam_locks_rw_id"></a> [iam_locks_rw_id](#output_iam_locks_rw_id)          | The ID of the IAM policy granting read/write access to the Terraform state DynamoDB lock table.  |
+| <a name="output_iam_tfstate_rw_arn"></a> [iam_tfstate_rw_arn](#output_iam_tfstate_rw_arn) | The ARN of the IAM policy granting read/write access to the Terraform state S3 bucket.   |
+| <a name="output_iam_tfstate_rw_id"></a> [iam_tfstate_rw_id](#output_iam_tfstate_rw_id)    | The ID of the IAM policy granting read/write access to the Terraform state S3 bucket.    |
+| <a name="output_lock_table_arn"></a> [lock_table_arn](#output_lock_table_arn)             | The DynamoDB table ARN that will be used for distributed locking.                        |
+| <a name="output_lock_table_id"></a> [lock_table_id](#output_lock_table_id)                | The DynamoDB table ID that will be used for distributed locking.                         |
+| <a name="output_lock_table_name"></a> [lock_table_name](#output_lock_table_name)          | The DynamoDB table Name that will be used for distributed locking.                       |
 
 <!-- END_TF_DOCS -->
 

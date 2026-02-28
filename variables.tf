@@ -19,13 +19,13 @@ variable "context" {
 variable "dynamodb_kms_key_arn" {
   type        = string
   default     = null
-  description = "TODO"
+  description = "The ARN of a customer-managed AWS KMS key to use for server-side encryption of the DynamoDB state-lock table. When null, the AWS-managed DynamoDB default key is used."
   nullable    = true
 }
 
 variable "s3_kms_key_arn" {
   type        = string
   default     = null
-  description = "TODO"
+  description = "The ARN of a customer-managed AWS KMS key to use for server-side encryption of the S3 Terraform state bucket. When null, the AWS-managed S3 default key (aws/s3) is used."
   nullable    = true
 }

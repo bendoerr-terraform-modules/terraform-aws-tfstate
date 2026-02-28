@@ -22,3 +22,23 @@ output "lock_table_name" {
   value       = aws_dynamodb_table.locks.name
   description = "The DynamoDB table Name that will be used for distributed locking"
 }
+
+output "iam_tfstate_rw_arn" {
+  value       = aws_iam_policy.s3_rw.arn
+  description = "The ARN of the IAM policy granting read/write access to the Terraform state S3 bucket."
+}
+
+output "iam_tfstate_rw_id" {
+  value       = aws_iam_policy.s3_rw.id
+  description = "The ID of the IAM policy granting read/write access to the Terraform state S3 bucket."
+}
+
+output "iam_locks_rw_arn" {
+  value       = aws_iam_policy.state_dynamodb_rw.arn
+  description = "The ARN of the IAM policy granting read/write access to the Terraform state DynamoDB lock table."
+}
+
+output "iam_locks_rw_id" {
+  value       = aws_iam_policy.state_dynamodb_rw.id
+  description = "The ID of the IAM policy granting read/write access to the Terraform state DynamoDB lock table."
+}
