@@ -26,6 +26,24 @@ data "aws_iam_policy_document" "s3_rw" {
       "${module.store.s3_bucket_arn}/*",
     ]
   }
+
+  dynamic "statement" {
+    for_each = var.s3_kms_key_arn != null ? [var.s3_kms_key_arn] : []
+
+    content {
+      sid    = "AllowS3KMS"
+      effect = "Allow"
+
+      actions = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey",
+      ]
+
+      resources = [
+        statement.value,
+      ]
+    }
+  }
 }
 
 resource "aws_iam_policy" "s3_rw" {

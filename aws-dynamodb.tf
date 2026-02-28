@@ -14,6 +14,24 @@ data "aws_iam_policy_document" "dynamodb_rw" {
       aws_dynamodb_table.locks.arn,
     ]
   }
+
+  dynamic "statement" {
+    for_each = var.dynamodb_kms_key_arn != null ? [var.dynamodb_kms_key_arn] : []
+
+    content {
+      sid    = "AllowDynamoDBKMS"
+      effect = "Allow"
+
+      actions = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey",
+      ]
+
+      resources = [
+        statement.value,
+      ]
+    }
+  }
 }
 
 resource "aws_iam_policy" "state_dynamodb_rw" {
