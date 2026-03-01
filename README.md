@@ -37,10 +37,10 @@ Ben's Terraform AWS TFState Remote Backend Module
 
 ## Usage
 
-Start with a basic Terraform project looking something similar to the
+Start with a basic Terraform project that looks similar to the
 following. This module will create the S3 bucket and DynamoDB table you need. A
-good practice is to keep this Terraform project minimal and check the state data
-into your source control.
+good practice is to keep this Terraform project minimal and check the Terraform
+configuration into your source control.
 
 ```terraform
 module "context" {
