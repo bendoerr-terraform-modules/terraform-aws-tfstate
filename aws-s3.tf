@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "s3_rw" {
   }
 
   dynamic "statement" {
-    for_each = var.s3_kms_key_arn != null ? [var.s3_kms_key_arn] : []
+    for_each = var.s3_kms_key_arn != null && trimspace(var.s3_kms_key_arn) != "" ? [trimspace(var.s3_kms_key_arn)] : []
 
     content {
       sid    = "AllowS3KMS"

@@ -4,3 +4,4 @@ terraform.tfstate.backup
 terraform.tfstate.*.backup
 .pre-commit-trivy-cache
 .infracost
+node_modules/

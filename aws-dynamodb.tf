@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "dynamodb_rw" {
   }
 
   dynamic "statement" {
-    for_each = var.dynamodb_kms_key_arn != null ? [var.dynamodb_kms_key_arn] : []
+    for_each = var.dynamodb_kms_key_arn != null && trimspace(var.dynamodb_kms_key_arn) != "" ? [trimspace(var.dynamodb_kms_key_arn)] : []
 
     content {
       sid    = "AllowDynamoDBKMS"
