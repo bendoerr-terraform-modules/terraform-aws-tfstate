@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "dynamodb_rw" {
+data "aws_iam_policy_document" "locks_rw" {
   statement {
     sid    = "AllowDynamoDBLocks"
     effect = "Allow"
@@ -34,11 +34,11 @@ data "aws_iam_policy_document" "dynamodb_rw" {
   }
 }
 
-resource "aws_iam_policy" "state_dynamodb_rw" {
-  name        = module.label_dynamodb_rw.id
-  tags        = module.label_dynamodb_rw.tags
+resource "aws_iam_policy" "locks_rw" {
+  name        = module.label_locks_rw.id
+  tags        = module.label_locks_rw.tags
   description = "Read/write access to the Terraform state DynamoDB lock table."
-  policy      = data.aws_iam_policy_document.dynamodb_rw.json
+  policy      = data.aws_iam_policy_document.locks_rw.json
 }
 
 # Point in time recovery is not needed.

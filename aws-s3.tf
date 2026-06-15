@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "s3_rw" {
+data "aws_iam_policy_document" "store_rw" {
   statement {
     sid    = "AllowListBucket"
     effect = "Allow"
@@ -46,11 +46,11 @@ data "aws_iam_policy_document" "s3_rw" {
   }
 }
 
-resource "aws_iam_policy" "s3_rw" {
-  name        = module.label_s3_rw.id
-  tags        = module.label_s3_rw.tags
+resource "aws_iam_policy" "store_rw" {
+  name        = module.label_store_rw.id
+  tags        = module.label_store_rw.tags
   description = "Read/write access to the Terraform state S3 bucket."
-  policy      = data.aws_iam_policy_document.s3_rw.json
+  policy      = data.aws_iam_policy_document.store_rw.json
 }
 
 # tfsec:ignore:aws-s3-enable-bucket-logging

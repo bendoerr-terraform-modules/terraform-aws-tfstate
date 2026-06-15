@@ -12,16 +12,16 @@ module "label_locks" {
   name    = "locks"
 }
 
-module "label_s3_rw" {
+module "label_store_rw" {
   source  = "bendoerr-terraform-modules/label/null"
   version = "0.5.0"
   context = var.context
-  name    = "s3-rw"
+  name    = "store-rw"
 }
 
-module "label_dynamodb_rw" {
+module "label_locks_rw" {
   source  = "bendoerr-terraform-modules/label/null"
   version = "0.5.0"
   context = var.context
-  name    = "dynamodb-rw"
+  name    = "locks-rw"
 }
