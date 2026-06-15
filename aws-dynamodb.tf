@@ -1,4 +1,6 @@
 data "aws_iam_policy_document" "locks_rw" {
+  count = var.enable_legacy_dynamodb_locking ? 1 : 0
+
   statement {
     sid    = "AllowDynamoDBLocks"
     effect = "Allow"
@@ -11,7 +13,7 @@ data "aws_iam_policy_document" "locks_rw" {
     ]
 
     resources = [
-      aws_dynamodb_table.locks.arn,
+      aws_dynamodb_table.locks[0].arn,
     ]
   }
 
@@ -35,15 +37,19 @@ data "aws_iam_policy_document" "locks_rw" {
 }
 
 resource "aws_iam_policy" "locks_rw" {
+  count = var.enable_legacy_dynamodb_locking ? 1 : 0
+
   name        = module.label_locks_rw.id
   tags        = module.label_locks_rw.tags
   description = "Read/write access to the Terraform state DynamoDB lock table."
-  policy      = data.aws_iam_policy_document.locks_rw.json
+  policy      = data.aws_iam_policy_document.locks_rw[0].json
 }
 
 # Point in time recovery is not needed.
 #tfsec:ignore:aws-dynamodb-enable-recovery
 resource "aws_dynamodb_table" "locks" {
+  count = var.enable_legacy_dynamodb_locking ? 1 : 0
+
   name = module.label_locks.id
   tags = module.label_locks.tags
 
