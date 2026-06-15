@@ -30,8 +30,8 @@ func TestLegacyDdb(t *testing.T) {
 		},
 	}
 
-	defer terraform.DestroyContext(ctx, t, terraformOptions)
-	terraform.InitAndApplyContext(ctx, t, terraformOptions)
+	defer terraform.DestroyContext(t, ctx, terraformOptions)
+	terraform.InitAndApplyContext(t, ctx, terraformOptions)
 
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
@@ -41,7 +41,7 @@ func TestLegacyDdb(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lockTableName := terraform.OutputContext(ctx, t, terraformOptions, "lock_table_name")
+	lockTableName := terraform.OutputContext(t, ctx, terraformOptions, "lock_table_name")
 	if lockTableName == "" {
 		t.Fatal("lock_table_name output is empty — flag should populate it")
 	}
