@@ -13,12 +13,14 @@ import (
 )
 
 func TestSimple(t *testing.T) {
+	ctx := context.Background()
+
 	rootFolder := "../"
 	terraformFolderRelativeToRoot := "examples/simple"
 
 	tempTestFolder := test_structure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
 
-	rndns := strings.ToLower(random.UniqueId())
+	rndns := strings.ToLower(random.UniqueID())
 
 	terraformOptions := &terraform.Options{
 		// The path to where our Terraform code is located
@@ -30,14 +32,14 @@ func TestSimple(t *testing.T) {
 	}
 
 	// At the end of the test, run `terraform destroy` to clean up any resources that were created
-	defer terraform.Destroy(t, terraformOptions)
+	defer terraform.DestroyContext(ctx, t, terraformOptions)
 
 	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
-	terraform.InitAndApply(t, terraformOptions)
+	terraform.InitAndApplyContext(ctx, t, terraformOptions)
 
 	// AWS Session
 	_, err := config.LoadDefaultConfig(
-		context.TODO(),
+		ctx,
 		config.WithRegion("us-east-1"),
 	)
 

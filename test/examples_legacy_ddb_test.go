@@ -13,12 +13,14 @@ import (
 )
 
 func TestLegacyDdb(t *testing.T) {
+	ctx := context.Background()
+
 	rootFolder := "../"
 	terraformFolderRelativeToRoot := "examples/legacy-ddb"
 
 	tempTestFolder := test_structure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
 
-	rndns := strings.ToLower(random.UniqueId())
+	rndns := strings.ToLower(random.UniqueID())
 
 	terraformOptions := &terraform.Options{
 		TerraformDir: tempTestFolder,
@@ -28,24 +30,24 @@ func TestLegacyDdb(t *testing.T) {
 		},
 	}
 
-	defer terraform.Destroy(t, terraformOptions)
-	terraform.InitAndApply(t, terraformOptions)
+	defer terraform.DestroyContext(ctx, t, terraformOptions)
+	terraform.InitAndApplyContext(ctx, t, terraformOptions)
 
 	cfg, err := config.LoadDefaultConfig(
-		context.TODO(),
+		ctx,
 		config.WithRegion("us-east-1"),
 	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	lockTableName := terraform.Output(t, terraformOptions, "lock_table_name")
+	lockTableName := terraform.OutputContext(ctx, t, terraformOptions, "lock_table_name")
 	if lockTableName == "" {
 		t.Fatal("lock_table_name output is empty — flag should populate it")
 	}
 
 	ddb := dynamodb.NewFromConfig(cfg)
-	desc, err := ddb.DescribeTable(context.TODO(), &dynamodb.DescribeTableInput{
+	desc, err := ddb.DescribeTable(ctx, &dynamodb.DescribeTableInput{
 		TableName: &lockTableName,
 	})
 	if err != nil {
