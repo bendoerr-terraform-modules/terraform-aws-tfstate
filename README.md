@@ -9,7 +9,7 @@
 
 <h3 align="center">Ben's Terraform AWS Terraform Remote State Module</h3>
 
-  <p align="center">
+<p align="center">
     This is how I do it.
     <br/>
     <br/>
@@ -121,8 +121,7 @@ module.
 #### Migrating from DynamoDB locking to S3 native locking
 
 **Requires Terraform v1.10+** (S3 native state locking was introduced in v1.10
-and went GA in v1.11). On older versions, set `enable_legacy_dynamodb_locking
-= true` and stay on DynamoDB locking until you can upgrade Terraform.
+and went GA in v1.11). On older versions, set `enable_legacy_dynamodb_locking = true` and stay on DynamoDB locking until you can upgrade Terraform.
 
 If you're upgrading from a previous version of this module that always
 provisioned the DynamoDB table:
@@ -130,14 +129,14 @@ provisioned the DynamoDB table:
 1. In your `backend "s3"` block, add `use_lockfile = true` alongside the
    existing `dynamodb_table = "..."` line. Terraform supports both
    simultaneously to allow safe migration.
-2. Run `terraform init -reconfigure` and a few `apply`s to gain confidence in
+1. Run `terraform init -reconfigure` and a few `apply`s to gain confidence in
    the lockfile behavior.
-3. Remove the `dynamodb_table = "..."` line from your backend block and run
+1. Remove the `dynamodb_table = "..."` line from your backend block and run
    `terraform init -reconfigure` again to drop the DynamoDB backend wiring.
-4. If other consumers of this module instance reference the DynamoDB table
+1. If other consumers of this module instance reference the DynamoDB table
    from their own backends, coordinate their migration through steps 1-3
    before continuing — destroying the table will break their locking.
-5. Upgrade this module. By default the DynamoDB table will plan a `destroy` —
+1. Upgrade this module. By default the DynamoDB table will plan a `destroy` —
    verify no other consumers still reference it, then apply.
 
 See <https://developer.hashicorp.com/terraform/language/backend/s3> for the
@@ -208,59 +207,59 @@ will find a compatible version automatically.
 
 ### Requirements
 
-| Name                                                                     | Version |
-| ------------------------------------------------------------------------ | ------- |
+| Name | Version |
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 1.10 |
-| <a name="requirement_aws"></a> [aws](#requirement_aws)                   | ~> 6.0  |
+| <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 6.0 |
 
 ### Providers
 
-| Name                                             | Version |
-| ------------------------------------------------ | ------- |
-| <a name="provider_aws"></a> [aws](#provider_aws) | ~> 6.0  |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider_aws) | ~> 6.0 |
 
 ### Modules
 
-| Name                                                                          | Source                                | Version |
-| ----------------------------------------------------------------------------- | ------------------------------------- | ------- |
-| <a name="module_label_locks"></a> [label_locks](#module_label_locks)          | bendoerr-terraform-modules/label/null | 1.0.0   |
-| <a name="module_label_locks_rw"></a> [label_locks_rw](#module_label_locks_rw) | bendoerr-terraform-modules/label/null | 1.0.0   |
-| <a name="module_label_store"></a> [label_store](#module_label_store)          | bendoerr-terraform-modules/label/null | 1.0.0   |
-| <a name="module_label_store_rw"></a> [label_store_rw](#module_label_store_rw) | bendoerr-terraform-modules/label/null | 1.0.0   |
-| <a name="module_store"></a> [store](#module_store)                            | terraform-aws-modules/s3-bucket/aws   | 5.14.0  |
+| Name | Source | Version |
+| ---- | ------ | ------- |
+| <a name="module_label_locks"></a> [label_locks](#module_label_locks) | bendoerr-terraform-modules/label/null | 1.0.0 |
+| <a name="module_label_locks_rw"></a> [label_locks_rw](#module_label_locks_rw) | bendoerr-terraform-modules/label/null | 1.0.0 |
+| <a name="module_label_store"></a> [label_store](#module_label_store) | bendoerr-terraform-modules/label/null | 1.0.0 |
+| <a name="module_label_store_rw"></a> [label_store_rw](#module_label_store_rw) | bendoerr-terraform-modules/label/null | 1.0.0 |
+| <a name="module_store"></a> [store](#module_store) | terraform-aws-modules/s3-bucket/aws | 5.14.0 |
 
 ### Resources
 
-| Name                                                                                                                                   | Type        |
-| -------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [aws_dynamodb_table.locks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table)                 | resource    |
-| [aws_iam_policy.locks_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy)                      | resource    |
-| [aws_iam_policy.store_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy)                      | resource    |
+| Name | Type |
+| ---- | ---- |
+| [aws_dynamodb_table.locks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
+| [aws_iam_policy.locks_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.store_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy_document.locks_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.store_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ### Inputs
 
-| Name                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Type                                                                                                                                                                                                                                                                                                                                   | Default | Required |
-| --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | :------: |
-| <a name="input_context"></a> [context](#input_context)                                                                      | Shared Context from Ben's terraform-null-context                                                                                                                                                                                                                                                                                                                                                                                                                                                               | <pre>object({<br/> attributes = list(string)<br/> dns_namespace = string<br/> environment = string<br/> instance = string<br/> instance_short = string<br/> namespace = string<br/> region = string<br/> region_short = string<br/> role = string<br/> role_short = string<br/> project = string<br/> tags = map(string)<br/> })</pre> | n/a     |   yes    |
-| <a name="input_dynamodb_kms_key_arn"></a> [dynamodb_kms_key_arn](#input_dynamodb_kms_key_arn)                               | [DEPRECATED — only consulted when `enable_legacy_dynamodb_locking = true`.] The ARN of a customer-managed AWS KMS key to use for server-side encryption of the DynamoDB state-lock table. When null, the AWS-managed DynamoDB default key is used.                                                                                                                                                                                                                                                             | `string`                                                                                                                                                                                                                                                                                                                               | `null`  |    no    |
-| <a name="input_enable_legacy_dynamodb_locking"></a> [enable_legacy_dynamodb_locking](#input_enable_legacy_dynamodb_locking) | When true, provisions the legacy DynamoDB lock table (and its IAM policy) for use with the s3 backend's `dynamodb_table` argument. Defaults to false; consumers should configure `use_lockfile = true` on their s3 backend and rely on S3 native state locking. Set to true only if you need to keep the DynamoDB table available during a migration, or if you're pinned to a Terraform version that does not support S3 native locking. See <https://developer.hashicorp.com/terraform/language/backend/s3>. | `bool`                                                                                                                                                                                                                                                                                                                                 | `false` |    no    |
-| <a name="input_s3_kms_key_arn"></a> [s3_kms_key_arn](#input_s3_kms_key_arn)                                                 | The ARN of a customer-managed AWS KMS key to use for server-side encryption of the S3 Terraform state bucket. When null, the AWS-managed S3 default key (aws/s3) is used.                                                                                                                                                                                                                                                                                                                                      | `string`                                                                                                                                                                                                                                                                                                                               | `null`  |    no    |
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_context"></a> [context](#input_context) | Shared Context from Ben's terraform-null-context | <pre>object({<br/>    attributes     = list(string)<br/>    dns_namespace  = string<br/>    environment    = string<br/>    instance       = string<br/>    instance_short = string<br/>    namespace      = string<br/>    region         = string<br/>    region_short   = string<br/>    role           = string<br/>    role_short     = string<br/>    project        = string<br/>    tags           = map(string)<br/>  })</pre> | n/a | yes |
+| <a name="input_dynamodb_kms_key_arn"></a> [dynamodb_kms_key_arn](#input_dynamodb_kms_key_arn) | \[DEPRECATED — only consulted when `enable_legacy_dynamodb_locking = true`.\] The ARN of a customer-managed AWS KMS key to use for server-side encryption of the DynamoDB state-lock table. When null, the AWS-managed DynamoDB default key is used. | `string` | `null` | no |
+| <a name="input_enable_legacy_dynamodb_locking"></a> [enable_legacy_dynamodb_locking](#input_enable_legacy_dynamodb_locking) | When true, provisions the legacy DynamoDB lock table (and its IAM policy) for use with the s3 backend's `dynamodb_table` argument. Defaults to false; consumers should configure `use_lockfile = true` on their s3 backend and rely on S3 native state locking. Set to true only if you need to keep the DynamoDB table available during a migration, or if you're pinned to a Terraform version that does not support S3 native locking. See <https://developer.hashicorp.com/terraform/language/backend/s3>. | `bool` | `false` | no |
+| <a name="input_s3_kms_key_arn"></a> [s3_kms_key_arn](#input_s3_kms_key_arn) | The ARN of a customer-managed AWS KMS key to use for server-side encryption of the S3 Terraform state bucket. When null, the AWS-managed S3 default key (aws/s3) is used. | `string` | `null` | no |
 
 ### Outputs
 
-| Name                                                                                | Description                                                                                                                                                                                                                                        |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <a name="output_bucket_arn"></a> [bucket_arn](#output_bucket_arn)                   | The S3 bucket ARN where the state will be stored.                                                                                                                                                                                                  |
-| <a name="output_bucket_id"></a> [bucket_id](#output_bucket_id)                      | The S3 bucket ID where the state will be stored.                                                                                                                                                                                                   |
-| <a name="output_iam_locks_rw_arn"></a> [iam_locks_rw_arn](#output_iam_locks_rw_arn) | [DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.] The ARN of the IAM policy granting read/write access to the Terraform state DynamoDB lock table. Returns null when S3 native locking is in use. |
-| <a name="output_iam_locks_rw_id"></a> [iam_locks_rw_id](#output_iam_locks_rw_id)    | [DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.] The ID of the IAM policy granting read/write access to the Terraform state DynamoDB lock table. Returns null when S3 native locking is in use.  |
-| <a name="output_iam_store_rw_arn"></a> [iam_store_rw_arn](#output_iam_store_rw_arn) | The ARN of the IAM policy granting read/write access to the Terraform state S3 bucket.                                                                                                                                                             |
-| <a name="output_iam_store_rw_id"></a> [iam_store_rw_id](#output_iam_store_rw_id)    | The ID of the IAM policy granting read/write access to the Terraform state S3 bucket.                                                                                                                                                              |
-| <a name="output_lock_table_arn"></a> [lock_table_arn](#output_lock_table_arn)       | [DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.] The DynamoDB table ARN that will be used for distributed locking. Returns null when S3 native locking is in use.                                |
-| <a name="output_lock_table_id"></a> [lock_table_id](#output_lock_table_id)          | [DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.] The DynamoDB table ID that will be used for distributed locking. Returns null when S3 native locking is in use.                                 |
-| <a name="output_lock_table_name"></a> [lock_table_name](#output_lock_table_name)    | [DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.] The DynamoDB table Name that will be used for distributed locking. Returns null when S3 native locking is in use.                               |
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_bucket_arn"></a> [bucket_arn](#output_bucket_arn) | The S3 bucket ARN where the state will be stored. |
+| <a name="output_bucket_id"></a> [bucket_id](#output_bucket_id) | The S3 bucket ID where the state will be stored. |
+| <a name="output_iam_locks_rw_arn"></a> [iam_locks_rw_arn](#output_iam_locks_rw_arn) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The ARN of the IAM policy granting read/write access to the Terraform state DynamoDB lock table. Returns null when S3 native locking is in use. |
+| <a name="output_iam_locks_rw_id"></a> [iam_locks_rw_id](#output_iam_locks_rw_id) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The ID of the IAM policy granting read/write access to the Terraform state DynamoDB lock table. Returns null when S3 native locking is in use. |
+| <a name="output_iam_store_rw_arn"></a> [iam_store_rw_arn](#output_iam_store_rw_arn) | The ARN of the IAM policy granting read/write access to the Terraform state S3 bucket. |
+| <a name="output_iam_store_rw_id"></a> [iam_store_rw_id](#output_iam_store_rw_id) | The ID of the IAM policy granting read/write access to the Terraform state S3 bucket. |
+| <a name="output_lock_table_arn"></a> [lock_table_arn](#output_lock_table_arn) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The DynamoDB table ARN that will be used for distributed locking. Returns null when S3 native locking is in use. |
+| <a name="output_lock_table_id"></a> [lock_table_id](#output_lock_table_id) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The DynamoDB table ID that will be used for distributed locking. Returns null when S3 native locking is in use. |
+| <a name="output_lock_table_name"></a> [lock_table_name](#output_lock_table_name) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The DynamoDB table Name that will be used for distributed locking. Returns null when S3 native locking is in use. |
 
 <!-- END_TF_DOCS -->
 
@@ -290,10 +289,10 @@ appreciated**.
 ### Creating A Pull Request
 
 1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+1. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+1. Push to the Branch (`git push origin feature/AmazingFeature`)
+1. Open a Pull Request
 
 ## License
 
