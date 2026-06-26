@@ -206,30 +206,30 @@ will find a compatible version automatically.
 
 <!-- BEGIN_TF_DOCS -->
 
-## Requirements
+### Requirements
 
 | Name                                                                     | Version |
 | ------------------------------------------------------------------------ | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 1.10 |
 | <a name="requirement_aws"></a> [aws](#requirement_aws)                   | ~> 6.0  |
 
-## Providers
+### Providers
 
 | Name                                             | Version |
 | ------------------------------------------------ | ------- |
 | <a name="provider_aws"></a> [aws](#provider_aws) | ~> 6.0  |
 
-## Modules
+### Modules
 
 | Name                                                                          | Source                                | Version |
 | ----------------------------------------------------------------------------- | ------------------------------------- | ------- |
 | <a name="module_label_locks"></a> [label_locks](#module_label_locks)          | bendoerr-terraform-modules/label/null | 1.0.0   |
-| <a name="module_label_locks_rw"></a> [label_locks_rw](#module_label_locks_rw) | bendoerr-terraform-modules/label/null | 0.5.0   |
+| <a name="module_label_locks_rw"></a> [label_locks_rw](#module_label_locks_rw) | bendoerr-terraform-modules/label/null | 1.0.0   |
 | <a name="module_label_store"></a> [label_store](#module_label_store)          | bendoerr-terraform-modules/label/null | 1.0.0   |
-| <a name="module_label_store_rw"></a> [label_store_rw](#module_label_store_rw) | bendoerr-terraform-modules/label/null | 0.5.0   |
+| <a name="module_label_store_rw"></a> [label_store_rw](#module_label_store_rw) | bendoerr-terraform-modules/label/null | 1.0.0   |
 | <a name="module_store"></a> [store](#module_store)                            | terraform-aws-modules/s3-bucket/aws   | 5.14.0  |
 
-## Resources
+### Resources
 
 | Name                                                                                                                                   | Type        |
 | -------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
@@ -239,7 +239,7 @@ will find a compatible version automatically.
 | [aws_iam_policy_document.locks_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.store_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
-## Inputs
+### Inputs
 
 | Name                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Type                                                                                                                                                                                                                                                                                                                                   | Default | Required |
 | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | :------: |
@@ -248,7 +248,7 @@ will find a compatible version automatically.
 | <a name="input_enable_legacy_dynamodb_locking"></a> [enable_legacy_dynamodb_locking](#input_enable_legacy_dynamodb_locking) | When true, provisions the legacy DynamoDB lock table (and its IAM policy) for use with the s3 backend's `dynamodb_table` argument. Defaults to false; consumers should configure `use_lockfile = true` on their s3 backend and rely on S3 native state locking. Set to true only if you need to keep the DynamoDB table available during a migration, or if you're pinned to a Terraform version that does not support S3 native locking. See <https://developer.hashicorp.com/terraform/language/backend/s3>. | `bool`                                                                                                                                                                                                                                                                                                                                 | `false` |    no    |
 | <a name="input_s3_kms_key_arn"></a> [s3_kms_key_arn](#input_s3_kms_key_arn)                                                 | The ARN of a customer-managed AWS KMS key to use for server-side encryption of the S3 Terraform state bucket. When null, the AWS-managed S3 default key (aws/s3) is used.                                                                                                                                                                                                                                                                                                                                      | `string`                                                                                                                                                                                                                                                                                                                               | `null`  |    no    |
 
-## Outputs
+### Outputs
 
 | Name                                                                                | Description                                                                                                                                                                                                                                        |
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
