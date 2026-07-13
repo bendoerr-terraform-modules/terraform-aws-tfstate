@@ -56,7 +56,7 @@ resource "aws_iam_policy" "store_rw" {
 # tfsec:ignore:aws-s3-enable-bucket-logging
 module "store" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "5.14.0"
+  version = "5.14.1"
 
   bucket = module.label_store.id
   tags   = module.label_store.tags

@@ -226,7 +226,7 @@ will find a compatible version automatically.
 | <a name="module_label_locks_rw"></a> [label_locks_rw](#module_label_locks_rw) | bendoerr-terraform-modules/label/null | 1.0.1 |
 | <a name="module_label_store"></a> [label_store](#module_label_store) | bendoerr-terraform-modules/label/null | 1.0.1 |
 | <a name="module_label_store_rw"></a> [label_store_rw](#module_label_store_rw) | bendoerr-terraform-modules/label/null | 1.0.1 |
-| <a name="module_store"></a> [store](#module_store) | terraform-aws-modules/s3-bucket/aws | 5.14.0 |
+| <a name="module_store"></a> [store](#module_store) | terraform-aws-modules/s3-bucket/aws | 5.14.1 |
 
 ### Resources
 
