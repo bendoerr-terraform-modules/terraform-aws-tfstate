@@ -209,7 +209,7 @@ will find a compatible version automatically.
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 1.10 |
+| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 1.10.0 |
 | <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 6.0 |
 
 ### Providers
