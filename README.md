@@ -104,8 +104,13 @@ whether you ever set a flag: in v0.x the table was created unconditionally and
 the flag did not exist.
 
 ```shell
-terraform state list | grep -E 'aws_dynamodb_table\.locks|aws_iam_policy\.locks_rw'
+terraform state list > state.txt || echo "state list FAILED - fix that first; no answer yet"
+grep -E 'aws_dynamodb_table\.locks|aws_iam_policy\.locks_rw' state.txt
 ```
+
+Check that the first command succeeded. A failed `state list` (for example in
+an uninitialised directory) leaves an empty file, which reads exactly like
+"No matches".
 
 **No matches** (v1.x with the legacy flag off):
 
@@ -134,7 +139,10 @@ Before you upgrade:
 
 1. Either retire the table on purpose, or keep it out of Terraform's hands
    with `removed` blocks (Terraform v1.7+) so the upgrade forgets it without
-   destroying it:
+   destroying it. Set each `from` to the address the `grep` above printed,
+   minus any `[0]`. The example uses `module.tfstate`; yours is whatever you
+   named the module. A `from` that matches nothing does nothing, and the
+   destroy goes ahead.
 
    ```terraform
    removed {
