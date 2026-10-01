@@ -39,8 +39,8 @@ Ben's Terraform AWS TFState Remote Backend Module
 
 Start with a basic Terraform project that looks similar to the following. This
 module creates the S3 bucket your remote state lives in. Locking is handled by
-the S3 backend's native lockfile mechanism (Terraform v1.10+ via
-`use_lockfile = true`); no separate DynamoDB table is provisioned by default. A
+the S3 backend's native lockfile mechanism (Terraform v1.10+, GA in v1.11,
+via `use_lockfile = true`); this module provisions no DynamoDB table. A
 good practice is to keep this Terraform project minimal and check the Terraform
 configuration into your source control.
 
@@ -82,79 +82,108 @@ terraform {
 
 ### Locking strategy
 
-This module uses S3 native state locking by default. Terraform writes a
+This module uses S3 native state locking. Terraform writes a
 `<state-key>.tflock` object next to the state object in the same bucket, using
-S3 conditional writes for mutual exclusion. No DynamoDB table is involved.
+S3 conditional writes for mutual exclusion, and deletes it on unlock. No
+DynamoDB table is involved. Consumers set `use_lockfile = true` in their
+`backend "s3"` block. Terraform v1.10 introduced it and v1.11 made it
+generally available, so v1.11 or later is recommended.
 
-#### If you need legacy DynamoDB locking
+The identity your backend uses needs `s3:GetObject`, `s3:PutObject` and
+`s3:DeleteObject` on the `.tflock` object. The `iam_store_rw_*` policy this
+module creates already grants all three.
 
-For consumers pinned to a Terraform version older than v1.10 (which introduced
-`use_lockfile`), set `enable_legacy_dynamodb_locking = true` on the module to
-restore the DynamoDB lock table and its IAM policy, and use the table in your
-backend block:
+### Upgrading to v2.0.0
 
-```terraform
-module "tfstate" {
-  source                          = "bendoerr-terraform-modules/tfstate/aws"
-  version                         = "xxx"
-  context                         = module.context.shared
-  enable_legacy_dynamodb_locking  = true
-}
+v2.0.0 **removes** the legacy DynamoDB locking path: the lock table, its IAM
+policy, the `enable_legacy_dynamodb_locking` and `dynamodb_kms_key_arn` inputs,
+and the `lock_table_*` and `iam_locks_rw_*` outputs.
 
-# In each consumer project:
-terraform {
-  backend "s3" {
-    bucket         = "brd-prod-ue1-tfstate-store"
-    dynamodb_table = "brd-prod-ue1-tfstate-locks"
-    key            = "terraform.tfstate"
-    kms_key_id     = "alias/aws/s3"
-    region         = "us-east-1"
-  }
-}
+**First, find out whether your state holds the lock table.** Don't go by
+whether you ever set a flag: in v0.x the table was created unconditionally and
+the flag did not exist.
+
+```shell
+terraform state list > state.txt || echo "state list FAILED - fix that first; no answer yet"
+grep -E 'aws_dynamodb_table\.locks|aws_iam_policy\.locks_rw' state.txt
 ```
 
-The `lock_table_id` / `lock_table_arn` / `lock_table_name` and
-`iam_locks_rw_arn` / `iam_locks_rw_id` outputs are populated only when this
-flag is set to true. They are deprecated and will be removed in v2.0.0 of this
-module.
+Check that the first command succeeded. A failed `state list` (for example in
+an uninitialised directory) leaves an empty file, which reads exactly like
+"No matches".
 
-#### Migrating from DynamoDB locking to S3 native locking
+**No matches** (v1.x with the legacy flag off):
 
-**Requires Terraform v1.10+** (S3 native state locking was introduced in v1.10
-and went GA in v1.11). On older versions, set `enable_legacy_dynamodb_locking = true` and stay on DynamoDB locking until you can upgrade Terraform.
+1. Remove `enable_legacy_dynamodb_locking` and `dynamodb_kms_key_arn` from your
+   `module` block if you set them at all, even to `false` or `null`. v2 rejects
+   them as unexpected arguments.
+1. Remove every reference to the removed outputs, including null-tolerant
+   ones such as `try(module.tfstate.lock_table_arn, null)`. v2 rejects them as
+   unsupported attributes.
+1. Upgrade, plan, and expect no changes from this module.
 
-If you're upgrading from a previous version of this module that always
-provisioned the DynamoDB table:
+**Matches** (v0.x, or v1.x with the legacy flag on): upgrading drops the table
+and its policy from your configuration, which Terraform plans as a **destroy**.
+Before you upgrade:
 
-1. In your `backend "s3"` block, add `use_lockfile = true` alongside the
-   existing `dynamodb_table = "..."` line. Terraform supports both
-   simultaneously to allow safe migration.
-1. Run `terraform init -reconfigure` and a few `apply`s to gain confidence in
-   the lockfile behavior.
-1. Remove the `dynamodb_table = "..."` line from your backend block and run
-   `terraform init -reconfigure` again to drop the DynamoDB backend wiring.
-1. If other consumers of this module instance reference the DynamoDB table
-   from their own backends, coordinate their migration through steps 1-3
-   before continuing — destroying the table will break their locking.
-1. Upgrade this module. By default the DynamoDB table will plan a `destroy` —
-   verify no other consumers still reference it, then apply.
+1. Move every backend that uses the table to S3 native locking, in two steps,
+   so nothing ever runs with only one of the two locks:
 
-See <https://developer.hashicorp.com/terraform/language/backend/s3> for the
+   1. Add `use_lockfile = true` **alongside** the existing `dynamodb_table`,
+      and run `terraform init -reconfigure` everywhere that configuration runs
+      (CI runners and every teammate's checkout).
+   1. Once all of them are on that config, remove `dynamodb_table` and run
+      `terraform init -reconfigure` again everywhere.
+
+1. Remove the two inputs and every reference to the removed outputs, as above.
+
+1. Either retire the table on purpose, or keep it out of Terraform's hands
+   with `removed` blocks (Terraform v1.7+) so the upgrade forgets it without
+   destroying it. Set each `from` to the address the `grep` above printed,
+   minus any `[0]`. The example uses `module.tfstate`; yours is whatever you
+   named the module. A `from` that matches nothing does nothing, and the
+   destroy goes ahead.
+
+   ```terraform
+   removed {
+     from = module.tfstate.aws_dynamodb_table.locks
+     lifecycle {
+       destroy = false
+     }
+   }
+
+   removed {
+     from = module.tfstate.aws_iam_policy.locks_rw
+     lifecycle {
+       destroy = false
+     }
+   }
+   ```
+
+   Both blocks are needed when both resources exist: with only the first, the
+   plan still shows `1 to destroy` for the policy. If you would rather delete
+   the policy, drop the second block and first detach it from anything that
+   uses it (another configuration attaching `iam_locks_rw_arn` makes the delete
+   fail with `DeleteConflict`).
+
+1. Plan and confirm **0 to destroy** before you apply.
+
+Until then, stay on `~> 1.0`. See
+<https://developer.hashicorp.com/terraform/language/backend/s3> for the
 upstream docs.
 
 ### Cost
 
 <a href="https://dashboard.infracost.io/org/bendoerr/repos/8e371a47-5161-427f-a0b9-e8fb9d7bf2a5?tab=settings"><img src="https://img.shields.io/endpoint?url=https://dashboard.api.infracost.io/shields/json/6e706676-64ba-43db-97b9-bd92f9272474/repos/8e371a47-5161-427f-a0b9-e8fb9d7bf2a5/branch/feee4136-0bbb-4a2e-9874-21543ff6b443" alt="infracost"/></a>
 
+Abridged from a v1.x run: the DynamoDB lock-table lines (which cost $0.00)
+and the resource-count footer are removed, so the totals are unchanged.
+
 ```text
 Project: 10 Workspaces & 5 Applies Each Per Day
 Module path: examples/complete
 
  Name                                               Monthly Qty  Unit         Monthly Cost
-
- module.tfstate.aws_dynamodb_table.locks
- ├─ Write request unit (WRU)                              1,500  WRUs                $0.00
- └─ Read request unit (RRU)                               1,500  RRUs                $0.00
 
  module.tfstate.module.store.aws_s3_bucket.this[0]
  └─ Standard
@@ -163,10 +192,6 @@ Module path: examples/complete
     └─ GET, SELECT, and all other requests                    3  1k requests         $0.00
 
  OVERALL TOTAL                                                                       $0.03
-──────────────────────────────────
-9 cloud resources were detected:
-∙ 2 were estimated, all of which include usage-based costs, see https://infracost.io/usage-file
-∙ 7 were free, rerun with --show-skipped to see details
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
 ┃ Project                                            ┃ Monthly cost ┃
@@ -222,8 +247,6 @@ will find a compatible version automatically.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_label_locks"></a> [label_locks](#module_label_locks) | bendoerr-terraform-modules/label/null | 1.0.1 |
-| <a name="module_label_locks_rw"></a> [label_locks_rw](#module_label_locks_rw) | bendoerr-terraform-modules/label/null | 1.0.1 |
 | <a name="module_label_store"></a> [label_store](#module_label_store) | bendoerr-terraform-modules/label/null | 1.0.1 |
 | <a name="module_label_store_rw"></a> [label_store_rw](#module_label_store_rw) | bendoerr-terraform-modules/label/null | 1.0.1 |
 | <a name="module_store"></a> [store](#module_store) | terraform-aws-modules/s3-bucket/aws | 5.15.4 |
@@ -232,10 +255,7 @@ will find a compatible version automatically.
 
 | Name | Type |
 | ---- | ---- |
-| [aws_dynamodb_table.locks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table) | resource |
-| [aws_iam_policy.locks_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.store_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
-| [aws_iam_policy_document.locks_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.store_rw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ### Inputs
@@ -243,8 +263,6 @@ will find a compatible version automatically.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_context"></a> [context](#input_context) | Shared Context from Ben's terraform-null-context | <pre>object({<br/>    attributes     = list(string)<br/>    dns_namespace  = string<br/>    environment    = string<br/>    instance       = string<br/>    instance_short = string<br/>    namespace      = string<br/>    region         = string<br/>    region_short   = string<br/>    role           = string<br/>    role_short     = string<br/>    project        = string<br/>    tags           = map(string)<br/>  })</pre> | n/a | yes |
-| <a name="input_dynamodb_kms_key_arn"></a> [dynamodb_kms_key_arn](#input_dynamodb_kms_key_arn) | \[DEPRECATED — only consulted when `enable_legacy_dynamodb_locking = true`.\] The ARN of a customer-managed AWS KMS key to use for server-side encryption of the DynamoDB state-lock table. When null, the AWS-managed DynamoDB default key is used. | `string` | `null` | no |
-| <a name="input_enable_legacy_dynamodb_locking"></a> [enable_legacy_dynamodb_locking](#input_enable_legacy_dynamodb_locking) | When true, provisions the legacy DynamoDB lock table (and its IAM policy) for use with the s3 backend's `dynamodb_table` argument. Defaults to false; consumers should configure `use_lockfile = true` on their s3 backend and rely on S3 native state locking. Set to true only if you need to keep the DynamoDB table available during a migration, or if you're pinned to a Terraform version that does not support S3 native locking. See <https://developer.hashicorp.com/terraform/language/backend/s3>. | `bool` | `false` | no |
 | <a name="input_s3_kms_key_arn"></a> [s3_kms_key_arn](#input_s3_kms_key_arn) | The ARN of a customer-managed AWS KMS key to use for server-side encryption of the S3 Terraform state bucket. When null, the AWS-managed S3 default key (aws/s3) is used. | `string` | `null` | no |
 
 ### Outputs
@@ -253,13 +271,8 @@ will find a compatible version automatically.
 | ---- | ----------- |
 | <a name="output_bucket_arn"></a> [bucket_arn](#output_bucket_arn) | The S3 bucket ARN where the state will be stored. |
 | <a name="output_bucket_id"></a> [bucket_id](#output_bucket_id) | The S3 bucket ID where the state will be stored. |
-| <a name="output_iam_locks_rw_arn"></a> [iam_locks_rw_arn](#output_iam_locks_rw_arn) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The ARN of the IAM policy granting read/write access to the Terraform state DynamoDB lock table. Returns null when S3 native locking is in use. |
-| <a name="output_iam_locks_rw_id"></a> [iam_locks_rw_id](#output_iam_locks_rw_id) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The ID of the IAM policy granting read/write access to the Terraform state DynamoDB lock table. Returns null when S3 native locking is in use. |
 | <a name="output_iam_store_rw_arn"></a> [iam_store_rw_arn](#output_iam_store_rw_arn) | The ARN of the IAM policy granting read/write access to the Terraform state S3 bucket. |
 | <a name="output_iam_store_rw_id"></a> [iam_store_rw_id](#output_iam_store_rw_id) | The ID of the IAM policy granting read/write access to the Terraform state S3 bucket. |
-| <a name="output_lock_table_arn"></a> [lock_table_arn](#output_lock_table_arn) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The DynamoDB table ARN that will be used for distributed locking. Returns null when S3 native locking is in use. |
-| <a name="output_lock_table_id"></a> [lock_table_id](#output_lock_table_id) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The DynamoDB table ID that will be used for distributed locking. Returns null when S3 native locking is in use. |
-| <a name="output_lock_table_name"></a> [lock_table_name](#output_lock_table_name) | \[DEPRECATED — set `enable_legacy_dynamodb_locking = true` to populate; will be removed in v2.0.0.\] The DynamoDB table Name that will be used for distributed locking. Returns null when S3 native locking is in use. |
 
 <!-- END_TF_DOCS -->
 
