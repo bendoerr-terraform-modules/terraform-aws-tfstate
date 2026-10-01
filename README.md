@@ -39,8 +39,8 @@ Ben's Terraform AWS TFState Remote Backend Module
 
 Start with a basic Terraform project that looks similar to the following. This
 module creates the S3 bucket your remote state lives in. Locking is handled by
-the S3 backend's native lockfile mechanism (Terraform v1.11+ via
-`use_lockfile = true`); this module provisions no DynamoDB table. A
+the S3 backend's native lockfile mechanism (Terraform v1.10+, GA in v1.11,
+via `use_lockfile = true`); this module provisions no DynamoDB table. A
 good practice is to keep this Terraform project minimal and check the Terraform
 configuration into your source control.
 
@@ -86,8 +86,8 @@ This module uses S3 native state locking. Terraform writes a
 `<state-key>.tflock` object next to the state object in the same bucket, using
 S3 conditional writes for mutual exclusion, and deletes it on unlock. No
 DynamoDB table is involved. Consumers set `use_lockfile = true` in their
-`backend "s3"` block, which needs Terraform v1.11 or later (where S3 native
-locking is generally available).
+`backend "s3"` block. Terraform v1.10 introduced it and v1.11 made it
+generally available, so v1.11 or later is recommended.
 
 The identity your backend uses needs `s3:GetObject`, `s3:PutObject` and
 `s3:DeleteObject` on the `.tflock` object. The `iam_store_rw_*` policy this
@@ -119,7 +119,21 @@ v2.0.0 **removes** the legacy DynamoDB locking path that v1.x kept behind
          destroy = false
        }
      }
+
+     removed {
+       from = module.tfstate.aws_iam_policy.locks_rw
+       lifecycle {
+         destroy = false
+       }
+     }
      ```
+
+     Both blocks are needed: v1.x creates the lock table **and** its IAM
+     policy behind the same flag, so with only the first, the plan still shows
+     `1 to destroy` for the policy. If you would rather delete the policy,
+     drop the second block and first detach it from anything that uses it
+     (another configuration attaching `iam_locks_rw_arn` makes the delete fail
+     with `DeleteConflict`).
 
   1. Remove any references to the deleted outputs (`lock_table_arn` is the
      usual one, e.g. passed to a DynamoDB IAM policy).
