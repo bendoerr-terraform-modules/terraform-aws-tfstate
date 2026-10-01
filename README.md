@@ -95,50 +95,70 @@ module creates already grants all three.
 
 ### Upgrading to v2.0.0
 
-v2.0.0 **removes** the legacy DynamoDB locking path that v1.x kept behind
-`enable_legacy_dynamodb_locking`: the lock table, its IAM policy, the
-`enable_legacy_dynamodb_locking` and `dynamodb_kms_key_arn` inputs, and the
-`lock_table_*` and `iam_locks_rw_*` outputs.
+v2.0.0 **removes** the legacy DynamoDB locking path: the lock table, its IAM
+policy, the `enable_legacy_dynamodb_locking` and `dynamodb_kms_key_arn` inputs,
+and the `lock_table_*` and `iam_locks_rw_*` outputs.
 
-- **You never set `enable_legacy_dynamodb_locking = true`:** nothing changes.
-  Upgrade.
-- **You did, and the lock table still exists:** upgrading drops the table from
-  your configuration, which Terraform plans as a **destroy**. Before you
-  upgrade:
-  1. Move every backend that uses the table to `use_lockfile = true` and
-     remove its `dynamodb_table` argument.
+**First, find out whether your state holds the lock table.** Don't go by
+whether you ever set a flag: in v0.x the table was created unconditionally and
+the flag did not exist.
 
-  1. Either retire the table on purpose, or keep it out of Terraform's hands
-     with a `removed` block (Terraform v1.7+) so the upgrade forgets it
-     without destroying it:
+```shell
+terraform state list | grep -E 'aws_dynamodb_table\.locks|aws_iam_policy\.locks_rw'
+```
 
-     ```terraform
-     removed {
-       from = module.tfstate.aws_dynamodb_table.locks
-       lifecycle {
-         destroy = false
-       }
+**No matches** (v1.x with the legacy flag off):
+
+1. Remove `enable_legacy_dynamodb_locking` and `dynamodb_kms_key_arn` from your
+   `module` block if you set them at all, even to `false` or `null`. v2 rejects
+   them as unexpected arguments.
+1. Remove every reference to the removed outputs, including null-tolerant
+   ones such as `try(module.tfstate.lock_table_arn, null)`. v2 rejects them as
+   unsupported attributes.
+1. Upgrade, plan, and expect no changes from this module.
+
+**Matches** (v0.x, or v1.x with the legacy flag on): upgrading drops the table
+and its policy from your configuration, which Terraform plans as a **destroy**.
+Before you upgrade:
+
+1. Move every backend that uses the table to S3 native locking, in two steps,
+   so nothing ever runs with only one of the two locks:
+
+   1. Add `use_lockfile = true` **alongside** the existing `dynamodb_table`,
+      and run `terraform init -reconfigure` everywhere that configuration runs
+      (CI runners and every teammate's checkout).
+   1. Once all of them are on that config, remove `dynamodb_table` and run
+      `terraform init -reconfigure` again everywhere.
+
+1. Remove the two inputs and every reference to the removed outputs, as above.
+
+1. Either retire the table on purpose, or keep it out of Terraform's hands
+   with `removed` blocks (Terraform v1.7+) so the upgrade forgets it without
+   destroying it:
+
+   ```terraform
+   removed {
+     from = module.tfstate.aws_dynamodb_table.locks
+     lifecycle {
+       destroy = false
      }
+   }
 
-     removed {
-       from = module.tfstate.aws_iam_policy.locks_rw
-       lifecycle {
-         destroy = false
-       }
+   removed {
+     from = module.tfstate.aws_iam_policy.locks_rw
+     lifecycle {
+       destroy = false
      }
-     ```
+   }
+   ```
 
-     Both blocks are needed: v1.x creates the lock table **and** its IAM
-     policy behind the same flag, so with only the first, the plan still shows
-     `1 to destroy` for the policy. If you would rather delete the policy,
-     drop the second block and first detach it from anything that uses it
-     (another configuration attaching `iam_locks_rw_arn` makes the delete fail
-     with `DeleteConflict`).
+   Both blocks are needed when both resources exist: with only the first, the
+   plan still shows `1 to destroy` for the policy. If you would rather delete
+   the policy, drop the second block and first detach it from anything that
+   uses it (another configuration attaching `iam_locks_rw_arn` makes the delete
+   fail with `DeleteConflict`).
 
-  1. Remove any references to the deleted outputs (`lock_table_arn` is the
-     usual one, e.g. passed to a DynamoDB IAM policy).
-
-  1. Plan and confirm **0 to destroy** before you apply.
+1. Plan and confirm **0 to destroy** before you apply.
 
 Until then, stay on `~> 1.0`. See
 <https://developer.hashicorp.com/terraform/language/backend/s3> for the
