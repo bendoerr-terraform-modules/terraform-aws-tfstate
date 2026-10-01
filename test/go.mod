@@ -4,7 +4,6 @@ go 1.26.0
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.33.4
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.68.0
 	github.com/gruntwork-io/terratest v1.0.1
 )
 
@@ -23,6 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/acm v1.38.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.66.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.75.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.68.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.297.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.57.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ecrpublic v1.39.6 // indirect

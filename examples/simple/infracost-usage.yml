@@ -27,21 +27,3 @@ resource_usage:
 
       monthly_select_data_scanned_gb: 0.0 # Monthly data scanned by S3 Select in GB.
       monthly_select_data_returned_gb: 0.0 # Monthly data returned by S3 Select in GB.
-
-  module.tfstate.aws_dynamodb_table.locks:
-    monthly_write_request_units:
-      # Monthly write request units in (used for on-demand DynamoDB).
-      # Estimate: 1 per apply 5 applies a day for each workspace
-      #   = 5 * 10 * 30
-      1500
-
-    monthly_read_request_units:
-      # Monthly write request units in (used for on-demand DynamoDB).
-      1500
-
-    storage_gb: 0.0000001 # Total storage for tables in GB.
-
-    pitr_backup_storage_gb: 0 # Total storage for Point-In-Time Recovery (PITR) backups in GB.
-    on_demand_backup_storage_gb: 0 # Total storage for on-demand backups in GB.
-    monthly_data_restored_gb: 0 # Monthly size of restored data in GB.
-    monthly_streams_read_request_units: 0 # Monthly streams read request units.
